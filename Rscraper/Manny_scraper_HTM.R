@@ -2,34 +2,6 @@
 #####       Manny's HTM scrape         ||             09/15/17              #####
 #################################################################################
 
-# Run the entire script below starting at ### DRYSCRPAE ### through the end (do not run the pbp_list or pbp_df portion). 
-# After that has all been run and all functions are loaded, run the ds.compile_games function directly below this. 
-# The "pbp_list" object is a list. [[1]] will pull the pbp specific dataframe out of the list. 
-
-# I've updated all the below functions to work with the HTM links (updated event types). I've also commented out 
-# a specific line in one of the functions that fixes a bug in Manny's original code that attempts to convert all
-# PHX games to ARI. Basically, you'll get all the games, but for 07-13 (I think), all PHX games will show the team
-# as "PHX" instead of ARI. 
-
-
-
-# The "games = ..." portion can be a single game or a vector. I would recommend only scraping at most 400 games at one time. 
-
-
-pbp_list <- ds.compile_games(games = 20701,
-                            season = "20162017",
-                            pause = 2,
-                            try_tolerance = 5,
-                            agents = ds.user_agents)
-
-pbp_df <- pbp_list[[1]]
-
-
-
-
-
-
-
 
 #################################################################################
 ###########              START HERE TO LOAD ALL FUNCTIONS             ###########  
@@ -47,8 +19,6 @@ pbp_df <- pbp_list[[1]]
 ## Description
 # Dryscrape contains all functions and tools related to scraping data for Corsica 
 # Dependencies: Rcurl, rjson, dplyr, lubridate, doMC, user_functions, rvest
-
-setwd("~/DataAnalysis/Programming Stuff/R/NHLScraper/")
 
 ## Dependencies
 require(RCurl); require(rjson); require(dplyr); 
@@ -3124,4 +3094,27 @@ ftable2df <- function(mydata) {
   cbind(dfrows, dfcols)
   
 }
+
+
+# Run the entire script below starting at ### DRYSCRPAE ### through the end (do not run the pbp_list or pbp_df portion). 
+# After that has all been run and all functions are loaded, run the ds.compile_games function directly below this. 
+# The "pbp_list" object is a list. [[1]] will pull the pbp specific dataframe out of the list. 
+
+# I've updated all the below functions to work with the HTM links (updated event types). I've also commented out 
+# a specific line in one of the functions that fixes a bug in Manny's original code that attempts to convert all
+# PHX games to ARI. Basically, you'll get all the games, but for 07-13 (I think), all PHX games will show the team
+# as "PHX" instead of ARI. 
+
+
+
+# The "games = ..." portion can be a single game or a vector. I would recommend only scraping at most 400 games at one time. 
+
+
+pbp_list <- ds.compile_games(games = 20701,
+                             season = "20162017",
+                             pause = 2,
+                             try_tolerance = 5,
+                             agents = ds.user_agents)
+
+pbp_df <- pbp_list[[1]]
 
