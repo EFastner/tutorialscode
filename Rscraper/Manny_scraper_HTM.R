@@ -4,11 +4,14 @@
 
 
 #################################################################################
-###########              START HERE TO LOAD ALL FUNCTIONS             ###########  
+###########              START HERE TO LOAD ALL FUNCTIONS             ###########
 #################################################################################
 
 
-
+#################################################################################
+##This code was written by Emmanuel Perry of @mannyelk on twitter and creator####
+##of corsica.hockey.  All credit to him for creation of the script           ####
+#################################################################################
 
 
 ### DRYSCRAPE ###
@@ -17,11 +20,11 @@
 
 
 ## Description
-# Dryscrape contains all functions and tools related to scraping data for Corsica 
+# Dryscrape contains all functions and tools related to scraping data for Corsica
 # Dependencies: Rcurl, rjson, dplyr, lubridate, doMC, user_functions, rvest
 
 ## Dependencies
-require(RCurl); require(rjson); require(dplyr); 
+require(RCurl); require(rjson); require(dplyr);
 require(lubridate); require(doMC); require(rvest)
 
 
@@ -31,7 +34,7 @@ c(20001:21230,
   30211:30217, 30221:30227, 30231:30237, 30241:30247,
   30311:30317, 30321:30327,
   30411:30417
-) %>% 
+) %>%
   as.character() ->
   ds.all_games
 
@@ -42,13 +45,13 @@ c("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, li
 ) ->
   ds.user_agents
 
-c("season", "game_id", "game_date", "session", 
+c("season", "game_id", "game_date", "session",
   "event_index", "game_period", "game_seconds",
   "event_type", "event_description", "event_detail",
   "event_team", "event_player_1", "event_player_2", "event_player_3",
   "event_length", "coords_x", "coords_y", "players_substituted",
-  "home_on_1", "home_on_2", "home_on_3", "home_on_4", "home_on_5", "home_on_6", 
-  "away_on_1", "away_on_2", "away_on_3", "away_on_4", "away_on_5", "away_on_6", 
+  "home_on_1", "home_on_2", "home_on_3", "home_on_4", "home_on_5", "home_on_6",
+  "away_on_1", "away_on_2", "away_on_3", "away_on_4", "away_on_5", "away_on_6",
   "home_goalie", "away_goalie", "home_team", "away_team",
   "home_skaters", "away_skaters", "home_score", "away_score",
   "game_score_state", "game_strength_state", "highlight_code"
@@ -69,7 +72,7 @@ data.frame(event = c("FAC", "HIT", "GvTk", "GOAL", "SHOT", "MISS", "BLOCK", "PEN
                      "error", "TAKE", "GIVE", "early intermission", "nothing", "nothing"
 ),
 code = as.character(c(502, 503, 504, 505, 506, 507, 508, 509,
-                      516, 517, 518, 519, 520, 521, 522, 0, 
+                      516, 517, 518, 519, 520, 521, 522, 0,
                       9999, 1401, 1402, -2147483648, 1, 5
 )
 )
@@ -80,10 +83,10 @@ code = as.character(c(502, 503, 504, 505, 506, 507, 508, 509,
 ## Meta Functions
 # Get PBP
 ds.get_pbp <- function(season, game_id, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # get_pbp() imports the PBP page corresponding to a given year and game ID and returns a list object
-  
+
   url <- paste("http://www.nhl.com/scores/htmlreports/",
                as.character(season),
                "/PL0",
@@ -91,11 +94,11 @@ ds.get_pbp <- function(season, game_id, try_tolerance = 3, agents = "Mozilla/5.0
                ".HTM",
                sep = ""
   )
-  
+
   raw_text <- NULL
-  
+
   while(class(raw_text) != "character" & try_tolerance > 0) {
-    
+
     try(
       url %>%
         getURL(header = FALSE,
@@ -107,59 +110,59 @@ ds.get_pbp <- function(season, game_id, try_tolerance = 3, agents = "Mozilla/5.0
         )
     ) ->
       raw_text
-    
+
     try_tolerance <- try_tolerance - 1
-    
+
   }
-  
+
   html <- read_html(raw_text)
-  
+
   all <- html_nodes(html, "td")
   body <- html_nodes(html, ".bborder")
   full_text <- html_text(all)
   body_text <- html_text(body)
-  
+
   pbp_list <- list(full_text, body_text)
-  
+
   return(pbp_list)
-  
+
 }
 
 # Get Shifts
 ds.get_shifts <- function(season, game_id, venue, source, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # get_shifts() imports the shift report page corresponding to a given year, game ID and venue and returns a list object
-  
+
   if(tolower(source) == "htm") {
-    
+
     if(tolower(venue) == "home") {
-      
-      url <- paste("http://www.nhl.com/scores/htmlreports/", 
-                   season, 
-                   "/TH0", 
-                   game_id, 
-                   ".HTM", 
+
+      url <- paste("http://www.nhl.com/scores/htmlreports/",
+                   season,
+                   "/TH0",
+                   game_id,
+                   ".HTM",
                    sep = ""
       )
-      
-      
+
+
     } else if(tolower(venue) == "away") {
-      
-      url <- paste("http://www.nhl.com/scores/htmlreports/", 
-                   season, 
-                   "/TV0", 
-                   game_id, 
-                   ".HTM", 
+
+      url <- paste("http://www.nhl.com/scores/htmlreports/",
+                   season,
+                   "/TV0",
+                   game_id,
+                   ".HTM",
                    sep = ""
       )
-      
+
     }
-    
+
     raw_text <- NULL
-    
+
     while(class(raw_text) != "character" & try_tolerance > 0) {
-      
+
       try(
         url %>%
           getURL(header = FALSE,
@@ -171,36 +174,36 @@ ds.get_shifts <- function(season, game_id, venue, source, try_tolerance = 3, age
           )
       ) ->
         raw_text
-      
+
       try_tolerance <- try_tolerance - 1
-      
+
     }
-    
+
     html <- read_html(raw_text)
-    
+
     outer_text <- html_text(html_nodes(html, ".border"))
     inner_text <- html_text(html_nodes(html, ".bborder"))
-    
+
     shifts_list <- list(outer_text, inner_text)
-    
+
     return(shifts_list)
-    
+
   } else if(tolower(source) == "json") {
-    
+
     year <- substr(season, 0, 4)
-    
+
     url <- paste("http://www.nhl.com/stats/rest/shiftcharts?cayenneExp=gameId=",
                  as.character(year),
                  "0",
                  as.character(game_id),
                  sep = ""
     )
-    
+
     raw_text <- NULL
     json_check <- NULL
-    
+
     while({class(raw_text) != "character" | class(json_check) != "list"} & try_tolerance > 0) {
-      
+
       try(
         url %>%
           getURL(header = FALSE,
@@ -212,29 +215,29 @@ ds.get_shifts <- function(season, game_id, venue, source, try_tolerance = 3, age
           )
       ) ->
         raw_text
-      
+
       json_check <- try(fromJSON(raw_text), silent = TRUE)
-      
+
       try_tolerance <- try_tolerance - 1
-      
+
     }
-    
+
     raw_json <- try(fromJSON(raw_text), silent = TRUE)
-    
+
     if(class(raw_json) == "try-error") {raw_json <- NULL}
-    
+
     return(raw_json)
-    
+
   }
-  
+
 }
 
 # Get Roster
 ds.get_roster <- function(season, game_id, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # get_roster() imports the Roster page corresponding to a given year and game ID and returns a character vector
-  
+
   url <- paste("http://www.nhl.com/scores/htmlreports/",
                as.character(season),
                "/RO0",
@@ -242,11 +245,11 @@ ds.get_roster <- function(season, game_id, try_tolerance = 3, agents = "Mozilla/
                ".HTM",
                sep = ""
   )
-  
+
   raw_text <- NULL
-  
+
   while(class(raw_text) != "character" & try_tolerance > 0) {
-    
+
     try(
       url %>%
         getURL(header = FALSE,
@@ -258,26 +261,26 @@ ds.get_roster <- function(season, game_id, try_tolerance = 3, agents = "Mozilla/
         )
     ) ->
       raw_text
-    
+
     try_tolerance <- try_tolerance - 1
-    
+
   }
-  
+
   html <- read_html(raw_text)
-  
+
   all <- html_nodes(html, "tr")
   full_text <- html_text(all)
-  
+
   return(full_text)
-  
+
 }
 
 # Get Highlights
 ds.get_highlights <- function(season, game_id, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # get_highlights() imports the highlights page corresponding to a given year and game ID and returns a JSON list object
-  
+
   url <- paste("http://live.nhle.com/GameData/",
                as.character(season),
                "/",
@@ -287,12 +290,12 @@ ds.get_highlights <- function(season, game_id, try_tolerance = 3, agents = "Mozi
                "/gc/gcgm.jsonp",
                sep = ""
   )
-  
+
   raw_text <- NULL
   json_check <- NULL
-  
+
   while({class(raw_text) != "character" | class(json_check) != "list"} & try_tolerance > 0) {
-    
+
     try(
       url %>%
         getURL(header = FALSE,
@@ -304,43 +307,43 @@ ds.get_highlights <- function(season, game_id, try_tolerance = 3, agents = "Mozi
         )
     ) ->
       raw_text
-    
+
     clean_text <- gsub("^.+?\\(\\{", "\\{", raw_text)
     json_check <- try(fromJSON(clean_text), silent = TRUE)
-    
+
     try_tolerance <- try_tolerance - 1
-    
+
   }
-  
+
   clean_text <- gsub("^.+?\\(\\{", "\\{", raw_text)
-  
+
   raw_json <- try(fromJSON(clean_text), silent = TRUE)
-  
+
   if(class(raw_json) == "try-error") {raw_json <- NULL}
-  
+
   return(raw_json)
-  
+
 }
 
 # Get Coordinates
 ds.get_coordinates <- function(season, game_id, source, date, away_team, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # get_coordinates() imports the event coordinates corresponding to a given year and game ID and returns a list object
-  
+
   if(tolower(source) == "espn") {
-    
+
     day <- gsub("-", "", as.character(date))
-    
-    url <- paste("http://scores.espn.go.com/nhl/scoreboard?date=", 
-                 day, 
+
+    url <- paste("http://scores.espn.go.com/nhl/scoreboard?date=",
+                 day,
                  sep = ""
     )
-    
+
     raw_text <- NULL
-    
+
     while(class(raw_text) != "character" & try_tolerance > 0) {
-      
+
       try(
         url %>%
           getURL(header = FALSE,
@@ -352,14 +355,14 @@ ds.get_coordinates <- function(season, game_id, source, date, away_team, try_tol
           )
       ) ->
         raw_text
-      
+
       try_tolerance <- try_tolerance - 1
-      
+
     }
-    
+
     game_ids <- unique(unlist(regmatches(raw_text, gregexpr("gameId=[0-9]+", raw_text))))
     teams <- toupper(gsub("team/_/name/|>|</div>", "", unique(unlist(regmatches(raw_text, gregexpr("team/_/name/[a-zA-Z]+|>(Coyotes|Thrashers)</div>", raw_text))))))
-    
+
     teams[which(teams == "PHX")] <- "ARI"
     teams[which(teams == "TB")] <- "T.B"
     teams[which(teams == "NJ")] <- "N.J"
@@ -367,36 +370,36 @@ ds.get_coordinates <- function(season, game_id, source, date, away_team, try_tol
     teams[which(teams == "LA")] <- "L.A"
     teams[which(teams == "COYOTES")] <- "ARI"
     teams[which(teams == "THRASHERS")] <- "ATL"
-    
+
     if (as.numeric(season) < 20110000) {teams[which(teams == "WPG")] <- "ATL"}
-    
-    matrix(unique(teams), 
-           byrow = TRUE, 
+
+    matrix(unique(teams),
+           byrow = TRUE,
            ncol = 2
-    ) %>% 
+    ) %>%
       data.frame() ->
       team_mat
-    
-    cbind(game_ids, 
+
+    cbind(game_ids,
           team_mat
-    ) %>% 
-      data.frame() %>% 
-      rename(awayteam = X1, 
+    ) %>%
+      data.frame() %>%
+      rename(awayteam = X1,
              hometeam = X2
       ) ->
       url_match
-    
+
     game_url <- first(as.character(url_match$game_ids[which(as.character(url_match$awayteam) == as.character(away_team) | as.character(url_match$hometeam) == as.character(away_team))]))
-    
-    url <- paste("http://sports.espn.go.com/nhl/gamecast/data/masterFeed?lang=en&isAll=true&rand=0&", 
-                 game_url, 
+
+    url <- paste("http://sports.espn.go.com/nhl/gamecast/data/masterFeed?lang=en&isAll=true&rand=0&",
+                 game_url,
                  sep = ""
     )
-    
+
     raw_text <- NULL
-    
+
     while(class(raw_text) != "character" & try_tolerance > 0) {
-      
+
       try(
         url %>%
           getURL(header = FALSE,
@@ -408,23 +411,23 @@ ds.get_coordinates <- function(season, game_id, source, date, away_team, try_tol
           )
       ) ->
         raw_text
-      
+
       try_tolerance <- try_tolerance - 1
-      
+
     }
-    
+
     events <- unlist(regmatches(raw_text, gregexpr("<Play.*?/Play>", raw_text)))
-    
+
     if(length(events) > 0) {
-      
-      do.call(cbind, 
+
+      do.call(cbind,
               strsplit(events, "[\\[~]")
       ) %>%
         t() %>%
         data.frame() %>%
         select(5, 3, 4, 6, 7, 11) ->
         event_mat
-      
+
       colnames(event_mat) <- c("event_code",
                                "xcoord",
                                "ycoord",
@@ -432,18 +435,18 @@ ds.get_coordinates <- function(season, game_id, source, date, away_team, try_tol
                                "period",
                                "description"
       )
-      
+
       event_mat$event_type <- ds.espn_codes$event[match(event_mat$event_code, ds.espn_codes$code)]
       event_mat$seconds <- 1200*(nabs(event_mat$period) - 1) + ds.seconds_from_ms(event_mat$time)
-      
+
       return(event_mat)
-      
+
     } else {return(NULL)}
-    
+
   } else if(tolower(source) == "nhl") {
-    
+
     year <- substr(season, 0, 4)
-    
+
     url <- paste("https://statsapi.web.nhl.com/api/v1/game/",
                  as.character(year),
                  "0",
@@ -451,12 +454,12 @@ ds.get_coordinates <- function(season, game_id, source, date, away_team, try_tol
                  "/feed/live?site=en_nhl",
                  sep = ""
     )
-    
+
     raw_text <- NULL
     json_check <- NULL
-    
+
     while({class(raw_text) != "character" | class(json_check) != "list"} & try_tolerance > 0) {
-      
+
       try(
         url %>%
           getURL(header = FALSE,
@@ -468,53 +471,53 @@ ds.get_coordinates <- function(season, game_id, source, date, away_team, try_tol
           )
       ) ->
         raw_text
-      
+
       json_check <- try(fromJSON(raw_text), silent = TRUE)
-      
+
       try_tolerance <- try_tolerance - 1
-      
+
     }
-    
+
     raw_json <- try(fromJSON(raw_text), silent = TRUE)
-    
+
     if(class(raw_json) == "try-error") {
-      
+
       return(NULL)
-      
+
     } else {
-      
-      event_mat <- dcapply(raw_json$liveData$plays$allPlays, 
-                           ds.parse_event, 
-                           "rbind", 
+
+      event_mat <- dcapply(raw_json$liveData$plays$allPlays,
+                           ds.parse_event,
+                           "rbind",
                            cores = 1
       )
-      
+
       event_mat$game_id <- na_if_null(nabs(raw_json$gameData$game$pk))
-      
+
       return(event_mat)
-      
+
     }
-    
+
   }
-  
+
 }
 
 # Get Team Profile
 ds.get_team_profile <- function(team_id, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # get_team_profile() imports the team profile page corresponding to a given team ID and returns a JSON list object
-  
+
   url <- paste("https://statsapi.web.nhl.com/api/v1/teams/",
                as.character(team_id),
                sep = ""
   )
-  
+
   raw_text <- NULL
   json_check <- NULL
-  
+
   while({class(raw_text) != "character" | class(json_check) != "list"} & try_tolerance > 0) {
-    
+
     try(
       url %>%
         getURL(header = FALSE,
@@ -526,37 +529,37 @@ ds.get_team_profile <- function(team_id, try_tolerance = 3, agents = "Mozilla/5.
         )
     ) ->
       raw_text
-    
+
     json_check <- try(fromJSON(raw_text))
-    
+
     try_tolerance <- try_tolerance - 1
-    
+
   }
-  
+
   raw_json <- try(fromJSON(raw_text))
-  
+
   if(class(raw_json) == "try-error") {raw_json <- NULL}
-  
+
   return(raw_json)
-  
+
 }
 
 # Get Player Profile
 ds.get_player_profile <- function(player_id, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # get_player_profile() imports the player profile page corresponding to a given player ID and returns a JSON list object
-  
+
   url <- paste("https://statsapi.web.nhl.com/api/v1/people/",
                as.character(player_id),
                sep = ""
   )
-  
+
   raw_text <- NULL
   json_check <- NULL
-  
+
   while({class(raw_text) != "character" | class(json_check) != "list"} & try_tolerance > 0) {
-    
+
     try(
       url %>%
         getURL(header = FALSE,
@@ -568,39 +571,39 @@ ds.get_player_profile <- function(player_id, try_tolerance = 3, agents = "Mozill
         )
     ) ->
       raw_text
-    
+
     json_check <- try(fromJSON(raw_text))
-    
+
     try_tolerance <- try_tolerance - 1
-    
+
   }
-  
+
   raw_json <- try(fromJSON(raw_text))
-  
+
   if(class(raw_json) == "try-error") {raw_json <- NULL}
-  
+
   return(raw_json)
-  
+
 }
 
 # Get Schedule
 ds.get_schedule <- function(start, end, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # get_schedule() imports the schedule page corresponding to a given date range and returns a JSON list object
-  
+
   url <- paste("https://statsapi.web.nhl.com/api/v1/schedule?startDate=",
                as.character(start),
                "&endDate=",
                as.character(end),
                sep = ""
   )
-  
+
   raw_text <- NULL
   json_check <- NULL
-  
+
   while({class(raw_text) != "character" | class(json_check) != "list"} & try_tolerance > 0) {
-    
+
     try(
       url %>%
         getURL(header = FALSE,
@@ -612,36 +615,36 @@ ds.get_schedule <- function(start, end, try_tolerance = 3, agents = "Mozilla/5.0
         )
     ) ->
       raw_text
-    
+
     json_check <- try(fromJSON(raw_text))
-    
+
     try_tolerance <- try_tolerance - 1
-    
+
   }
-  
+
   raw_json <- try(fromJSON(raw_text))
-  
+
   if(class(raw_json) == "try-error") {raw_json <- NULL}
-  
+
   return(raw_json)
-  
+
 }
 
 # Parse PBP Event
 ds.parse_event <- function(x) {
-  
+
   ## Description
   # parse_event() parses a single event from the PBP JSON object and returns a data frame
-  
+
   x$players %>%
     sapply(function(p) as.character(p$player$id)) %>%
     unlist() %>%
-    c(rep(NA, 
+    c(rep(NA,
           times = (4 - length(x$players))
     )
     ) ->
     player_ids
-  
+
   data.frame(game_date = NA,
              game_id = NA,
              season = NA,
@@ -665,17 +668,17 @@ ds.parse_event <- function(x) {
              highlight_id = na_if_null(nabs(x$about$eventId))
   ) ->
     event_df
-  
+
   return(event_df)
-  
+
 }
 
 # Parse Highlight
 ds.parse_highlight <- function(x) {
-  
+
   ## Description
   # parse_highlight() parses a single highlight from the Highlights JSON object and returns a data frame
-  
+
   data.frame(game_date = NA,
              game_id = NA,
              season = NA,
@@ -689,18 +692,18 @@ ds.parse_highlight <- function(x) {
              event_type = na_if_null(x$type)
   ) ->
     highlight_df
-  
+
   return(highlight_df)
-  
+
 }
 
 # Parse Game
 ds.parse_game <- function(x) {
-  
+
   ## Description
   # parse_game() parses a single game from the Schedule >> Date JSON object and returns a data frame
   # parse_game() is an inner function for parse_date()
-  
+
   data.frame(game_id = na_if_null(nabs(x$gamePk)),
              game_date = na_if_null(as.character(as.Date(x$gameDate))),
              season = na_if_null(as.character(x$season)),
@@ -712,51 +715,51 @@ ds.parse_game <- function(x) {
              game_datetime = na_if_null(as.character(parse_date_time(x$gameDate, "y-m-d.H:M:S.")))
   ) ->
     game_df
-  
+
   return(game_df)
-  
+
 }
 
 # Parse Date
 ds.parse_date <- function(x) {
-  
+
   ## Description
   # parse_date() parses a single date from the Schedule JSON object and returns a data frame
   # parse_date() uses an inner function parse_game()
-  
+
   date_df <- dcapply(x$games,
                      ds.parse_game,
                      "rbind",
                      cores = 1
   )
-  
+
   return(date_df)
-  
+
 }
 
 # Parse Player
 ds.parse_player <- function(x) {
-  
+
   ## Description
   # parse_player() parses a single player from the PBP JSON object and returns a data frame
-  
+
   data.frame(player_id = x$person$id,
              player_name = x$person$fullName,
              player_number = x$jerseyNumber,
              position = x$position$code
   ) ->
     player_df
-  
+
   return(player_df)
-  
+
 }
 
 # Seconds from MS
 ds.seconds_from_ms <- function(ms) {
-  
+
   ## Description
   # seconds_from_ms() returns a numeric vector of representation in seconds of a given vector in M:S format
-  
+
   strsplit(as.character(ms), ":") %>%
     unlist() %>%
     nabs() %>%
@@ -764,35 +767,35 @@ ds.seconds_from_ms <- function(ms) {
            byrow = TRUE
     ) ->
     time_mat
-  
+
   seconds <- 60*time_mat[, 1] + time_mat[, 2]
-  
+
   return(seconds)
-  
+
 }
 
 # Clean Nums
 ds.clean.nums <- function(x) {
-  
+
   ## Description
   # clean_nums() returns a list of player number identifiers for a given event description
-  
+
   t <- gsub("#|ONGOAL - ", "", as.character(unlist(x)))
   t2 <- list(c(t, rep(NA, times = (3 - length(t)))))
   return(t2)
-  
+
 }
 
 #Parse Shifts
 ds.parse_shifts <- function(player, venue, inner, outer) {
-  
+
   ## Description
-  # parse_shifts() returns a matrix containing shift information for a single player 
-  
+  # parse_shifts() returns a matrix containing shift information for a single player
+
   if(tolower(venue) == "home") {
-    
+
     index <- which(outer[-1] == player)
-    
+
     inner[which(inner == "Shift #" | inner == "Présence #Shift #")[index]:(which(inner == "SHF" | inner == "PR/SHF")[index]-3)] %>%
       matrix(ncol = 6,
              byrow = TRUE
@@ -804,11 +807,11 @@ ds.parse_shifts <- function(player, venue, inner, outer) {
       filter(X2 != "Per") %>%
       data.frame() ->
       shift_mat
-    
+
   } else if(tolower(venue) == "away") {
-    
+
     index <- which(outer[-1] == player)
-    
+
     inner[which(inner == "Shift #" | inner == "Présence #Shift #")[index]:(which(inner == "SHF" | inner == "PR/SHF")[index]-3)] %>%
       matrix(ncol = 6,
              byrow = TRUE
@@ -820,19 +823,19 @@ ds.parse_shifts <- function(player, venue, inner, outer) {
       filter(X2 != "Per") %>%
       data.frame() ->
       shift_mat
-    
+
   }
-  
+
   return(shift_mat)
-  
+
 }
 
 # Parse Shift
 ds.parse_shift <- function(x) {
-  
+
   ## Description
   # parse_shift() parses a single shift from the Shifts JSON object and returns a data frame
-  
+
   data.frame(game_date = NA,
              game_id = na_if_null(nabs(x$gameId)),
              season = NA,
@@ -848,68 +851,68 @@ ds.parse_shift <- function(x) {
              player_name_last = na_if_null(as.character(x$lastName))
   ) ->
     shift_df
-  
+
   return(shift_df)
-  
+
 }
 
 # Is On
 ds.is_on <- function(player, pbp, venue) {
-  
+
   ## Description
   # is_on() returns a numeric vector indicating 1 if a given player is on ice during the event corresponding to the \
   # row index in the given PBP pbject
-  
-  regex <- paste(player, 
+
+  regex <- paste(player,
                  ",|",
                  player,
                  "$",
                  sep = ""
   )
-  
+
   if(venue == "Home") {
-    
-    data.frame(cumsum(1*(grepl(regex, pbp$players_substituted) == TRUE & pbp$event_type == "ON" & pbp$event_team == pbp$home_team) - 
+
+    data.frame(cumsum(1*(grepl(regex, pbp$players_substituted) == TRUE & pbp$event_type == "ON" & pbp$event_team == pbp$home_team) -
                         1*(grepl(regex, pbp$players_substituted) == TRUE & pbp$event_type == "OFF" & pbp$event_team == pbp$home_team)
     )
     ) ->
       is_on
-    
+
   } else if(venue == "Away") {
-    
-    data.frame(cumsum(1*(grepl(regex, pbp$players_substituted) == TRUE & pbp$event_type == "ON" & pbp$event_team == pbp$away_team) - 
+
+    data.frame(cumsum(1*(grepl(regex, pbp$players_substituted) == TRUE & pbp$event_type == "ON" & pbp$event_team == pbp$away_team) -
                         1*(grepl(regex, pbp$players_substituted) == TRUE & pbp$event_type == "OFF" & pbp$event_team == pbp$away_team)
     )
     ) ->
       is_on
-    
+
   }
-  
+
   colnames(is_on) <- player
-  
+
   return(is_on)
-  
+
 }
 
 # Is On
 ds.find_goalie <- function(players, roster) {
-  
+
   ## Description
   # find_goalie() returns a vector containing all goaltenders in a given player vector
-  
+
   index <- which(players %in% roster$team_num[which(roster$player_position == "G")])
   goalie <- na_if_null(players[index])
-  
+
   return(goalie)
-  
+
 }
 
 # Fix Names
 ds.fix_names <- function(name_vect) {
-  
+
   ## Description
   # fix_names() returns a vector of player names corrected for multiple spelling variants
-  
+
   name_vect[which(name_vect == "PK.SUBBAN" | name_vect == "P.K.SUBBAN")] <- "P.K..SUBBAN"
   name_vect[which(name_vect == "TJ.OSHIE" | name_vect == "T.J.OSHIE")] <- "T.J..OSHIE"
   name_vect[which(name_vect == "BJ.CROMBEEN" | name_vect == "B.J.CROMBEEN" | name_vect == "BRANDON.CROMBEEN")] <- "B.J..CROMBEEN"
@@ -954,38 +957,38 @@ ds.fix_names <- function(name_vect) {
   name_vect[which(name_vect == "ANDREW.MILLER")] <- "DREW.MILLER"
   name_vect[which(name_vect == "EDWARD.PURCELL")] <- "TEDDY.PURCELL"
   name_vect[which(name_vect == "NICKLAS.GROSSMAN")] <- "NICKLAS.GROSSMANN"
-  
+
   return(name_vect)
-  
+
 }
 
 
 ## General Functions
 # Who
 ds.who <- function(player_id) {
-  
+
   ## Description
   # who() searches a given player ID and returns the player's full name
-  
+
   player <- ds.get_player_profile(player_id)
-  
+
   full_name <- player$people[[1]]$fullName
-  
+
   return(full_name)
-  
+
 }
 
 # Scrape Team Profile
 ds.scrape_team_profile <- function(team_id, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # scrape_team_profile() collects and parses the data for a team corresponsing to a given team ID
   # A data frame is returned
-  
+
   team_id_ <- nabs(team_id)
-  
+
   team <- ds.get_team_profile(team_id_, try_tolerance, agents)
-  
+
   data.frame(team_id = na_if_null(nabs(team$teams[[1]]$id)),
              team_name = na_if_null(team$teams[[1]]$name),
              team_alias = na_if_null(team$teams[[1]]$abbreviation),
@@ -1000,22 +1003,22 @@ ds.scrape_team_profile <- function(team_id, try_tolerance = 3, agents = "Mozilla
              is_active = na_if_null(as.logical(team$teams[[1]]$active))
   ) ->
     team_df
-  
+
   return(team_df)
-  
+
 }
 
 # Scrape Player Profile
 ds.scrape_player_profile <- function(player_id, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # scrape_player_profile() collects and parses the data for a player corresponsing to a given player ID
   # A data frame is returned
-  
+
   player_id_ <- nabs(player_id)
-  
+
   player <- ds.get_player_profile(player_id_, try_tolerance, agents)
-  
+
   data.frame(player_id = na_if_null(nabs(player$people[[1]]$id)),
              player_name_first = na_if_null(as.character(player$people[[1]]$firstName)),
              player_name_last = na_if_null(as.character(player$people[[1]]$lastName)),
@@ -1033,104 +1036,104 @@ ds.scrape_player_profile <- function(player_id, try_tolerance = 3, agents = "Moz
              is_rookie = na_if_null(as.logical(player$people[[1]]$rookie))
   ) ->
     player_df
-  
+
   return(player_df)
-  
+
 }
 
 # Scrape Schedule
 ds.scrape_schedule <- function(start, end, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # scrape_schedule() collects and parses the schedule data for a range corresponsing to a given start and end date
   # A data frame is returned
-  
+
   start_ <- as.character(start); end_ <- as.character(end)
-  
+
   sched <- ds.get_schedule(start_, end_, try_tolerance, agents)
-  
+
   sched_df <- dcapply(sched$dates,
-                      ds.parse_date, 
-                      "rbind", 
+                      ds.parse_date,
+                      "rbind",
                       cores = 1
   )
-  
+
   return(sched_df)
-  
+
 }
 
 # Scrape Game
 ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # scrape_game() collects and parses the data for a game corresponsing to a given season and game ID
   # A list object containing c([[1]] = PBP, [[2]] = Shifts, [[3]] = Highlights) is returned
-  
+
   season_ <- as.character(season); game_id_ <- as.character(game_id)
-  
+
   pbp <- ds.get_pbp(season_, game_id_, try_tolerance, agents)
   home_shifts <- ds.get_shifts(season_, game_id_, venue = "home", source = "htm", try_tolerance, agents)
   away_shifts <- ds.get_shifts(season_, game_id_, venue = "away", source = "htm", try_tolerance, agents)
   roster <- ds.get_roster(season, game_id_, try_tolerance, agents)
   highlights <- ds.get_highlights(season_, game_id_, try_tolerance, agents)
-  
+
   pbp_full <- pbp[[1]]
   pbp_body <- pbp[[2]]
-  
+
   home_shifts_outer <- home_shifts[[1]]
   home_shifts_inner <- home_shifts[[2]]
   away_shifts_outer <- away_shifts[[1]]
   away_shifts_inner <- away_shifts[[2]]
-  
+
   highlight_df <- dcapply(highlights$video$events,
                           ds.parse_highlight,
                           "rbind",
                           cores = 1
   )
-  
-  matrix(pbp_body, 
-         byrow = TRUE, 
+
+  matrix(pbp_body,
+         byrow = TRUE,
          ncol = 8
-  ) %>% 
-    data.frame() %>% 
+  ) %>%
+    data.frame() %>%
     filter(X2 != "Per") ->
     pbp_raw
-  
+
   highlight_df <- dcapply(highlights$video$events,
                           ds.parse_highlight,
                           "rbind",
                           cores = 1
   )
-  
+
   if(!is.null(pbp_raw) & nrow(pbp_raw) > 0) {
-    
-    gsub("^[a-zA-Z]*, ", "", pbp_full[grep("^[a-zA-Z]*, ", pbp_full)]) %>% 
-      as.Date(format = "%B %d, %Y") %>% 
-      first() %>% 
+
+    gsub("^[a-zA-Z]*, ", "", pbp_full[grep("^[a-zA-Z]*, ", pbp_full)]) %>%
+      as.Date(format = "%B %d, %Y") %>%
+      first() %>%
       as.character() ->
       game_date_
-    
-    game_id_unique <- paste(substr(season_, 0, 4), 
-                            "0", 
+
+    game_id_unique <- paste(substr(season_, 0, 4),
+                            "0",
                             as.character(game_id_),
                             sep = ""
     )
-    
+
     session_ <- ifelse(nabs(game_id_) > 30000,
                        "P",
                        "R"
     )
-    
+
     home_team_ <- gsub(" On Ice", "", pbp_body[8])
     away_team_ <- gsub(" On Ice", "", pbp_body[7])
-    
+
     # Removing this
     #home_team_[which(home_team_ == "PHX")] <- "ARI"; away_team_[which(away_team_ == "PHX")] <- "ARI"
-    
+
     coordinates_df <- ds.get_coordinates(season_, game_id_, source = "espn", date = game_date_, away_team = away_team_, try_tolerance, agents)
-    
+
     if(!is.null(coordinates_df)) {
-      
+
       coordinates_df %>%
         filter(nabs(period) < 5,
                event_type == "GOAL"
@@ -1140,13 +1143,13 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
         filter(dupes > 1) %>%
         data.frame() ->
         dupe_check
-      
+
     } else {dupe_check <- data.frame()}
-    
+
     if(is.null(coordinates_df) == TRUE | nrow(dupe_check) > 0) {
-      
+
       coordinates_df <- ds.get_coordinates(season_, game_id_, source = "nhl", date = game_date_, away_team = away_team_, try_tolerance, agents)
-      
+
       coordinates_df %>%
         rename(time = period_time_elapsed,
                xcoord = coords_x,
@@ -1169,14 +1172,14 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
         ) %>%
         data.frame() ->
         coordinates_df
-      
+
       coordinates_df$event_type[which(coordinates_df$event_type == "MISSED_SHOT")] <- "MISS"
       coordinates_df$event_type[which(coordinates_df$event_type == "BLOCKED_SHOT")] <- "BLOCK"
       coordinates_df$event_type[which(coordinates_df$event_type == "FACEOFF")] <- "FAC"
       coordinates_df$event_type[which(coordinates_df$event_type == "GIVEAWAY")] <- "GIVE"
       coordinates_df$event_type[which(coordinates_df$event_type == "TAKEAWAY")] <- "TAKE"
       coordinates_df$event_type[which(coordinates_df$event_type == "PENALTY")] <- "PENL"
-      
+
       coordinates_df %>%
         filter(nabs(period) < 5,
                event_type == "GOAL"
@@ -1186,11 +1189,11 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
         filter(dupes > 1) %>%
         data.frame() ->
         dupe_check
-      
+
       if(nrow(dupe_check) > 0) {coordinates_df <- NULL}
-      
+
     }
-    
+
     pbp_raw %>%
       filter(X4 != "",
              X2 != ""
@@ -1221,7 +1224,7 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       ) %>%
       data.frame() ->
       pbp_df
-    
+
     bind_rows(
       pbp_df %>%
         filter(event_type == "FAC") %>%
@@ -1229,7 +1232,7 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
                event_player_2 = paste(home_team, event_player_2, sep = ""),
                event_player_3 = NA
         ),
-      
+
       pbp_df %>%
         filter(event_type %in% c("HIT", "BLOCK", "PENL")) %>%
         group_by(event_team) %>%
@@ -1237,7 +1240,7 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
                event_player_2 = paste(unique(c(home_team, away_team))[which(unique(c(home_team, away_team)) != first(event_team))], event_player_2, sep = ""),
                event_player_3 = NA
         ),
-      
+
       pbp_df %>%
         filter(event_type %in% c("SHOT", "MISS", "GIVE", "TAKE")) %>%
         group_by(event_team) %>%
@@ -1245,7 +1248,7 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
                event_player_2 = NA,
                event_player_3 = NA
         ),
-      
+
       pbp_df %>%
         filter(event_type %in% c("GOAL")) %>%
         group_by(event_team) %>%
@@ -1253,7 +1256,7 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
                event_player_2 = paste(first(event_team), event_player_2, sep = ""),
                event_player_3 = paste(first(event_team), event_player_3, sep = "")
         ),
-      
+
       pbp_df %>%
         filter(event_type %in% c("FAC", "HIT", "BLOCK", "PENL", "SHOT", "MISS", "GIVE", "TAKE", "GOAL") == FALSE) %>%
         data.frame()
@@ -1264,11 +1267,11 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       ) %>%
       data.frame() ->
       pbp_df
-    
+
   } else {return(list(NULL, NULL, NULL, NULL, NULL))}
-  
+
   if(!is.null(roster)) {
-    
+
     regmatches(as.character(roster[1]), gregexpr("[0-9]+(\\\r\\\n|\\\n)[A-Z]+(\\\r\\\n|\\\n)[A-Z )(-]+(\\\r\\\n|\\\n)", as.character(roster[1]))) %>%
       unlist() %>%
       strsplit("(\\\r\\\n|\\\n)") %>%
@@ -1282,20 +1285,20 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
              player_name = X3
       ) ->
       pos_match
-    
+
     pos_match$name_match <- gsub("[^A-Z]|\\([A-Z]+\\)", "", pos_match$player_name)
-    
+
   }
-  
+
   if(!is.null(home_shifts) & !is.null(away_shifts) & length(home_shifts_outer[-1]) > 0 & length(away_shifts_outer[-1]) > 0) {
-    
+
     bind_rows(
       data.frame(team_name = home_shifts_outer[1],
                  team = home_team_,
                  venue = "Home",
                  num_first_last = home_shifts_outer[-1]
       ),
-      
+
       data.frame(team_name = away_shifts_outer[1],
                  team = away_team_,
                  venue = "Away",
@@ -1313,11 +1316,11 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       ) %>%
       data.frame() ->
       roster_df
-    
-    strsplit(gsub("^[0-9]+ ", 
-                  "", 
+
+    strsplit(gsub("^[0-9]+ ",
+                  "",
                   roster_df$num_first_last
-    ), 
+    ),
     ", "
     ) %>%
       unlist() %>%
@@ -1327,13 +1330,13 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       ) %>%
       data.frame() ->
       name_mat
-    
+
     roster_df$first_name <- name_mat[, 2]
     roster_df$last_name <- name_mat[, 1]
     roster_df$player_name <- paste(roster_df$first_name, roster_df$last_name, sep = ".")
     roster_df$name_match <- gsub("[^A-Z]|\\([A-Z]+\\)", "", roster_df$player_name)
     roster_df$player_position <- pos_match$player_position[match(roster_df$name_match, pos_match$name_match)]
-    
+
     bind_rows(
       do.call(rbind,
               lapply(as.list(home_shifts_outer[-1]),
@@ -1345,7 +1348,7 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       ) %>%
         data.frame() %>%
         mutate(team = home_team_),
-      
+
       do.call(rbind,
               lapply(as.list(away_shifts_outer[-1]),
                      ds.parse_shifts,
@@ -1378,46 +1381,46 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       ) %>%
       data.frame() ->
       shifts_df
-    
+
     shifts_df$player_name <- roster_df$player_name[match(shifts_df$num_first_last, roster_df$num_first_last)]
     shifts_df$game_period <- as.character(shifts_df$game_period)
     shifts_df$game_period[which(shifts_df$game_period == "OT")] <- "4"
     shifts_df$team_num <- paste(shifts_df$team, gsub("[^0-9]", "", shifts_df$num_first_last), sep = "")
-    
+
     do.call(rbind,
             strsplit(as.character(shifts_df$shift_start), " / ")
     ) %>%
       data.frame() ->
       start_mat
-    
+
     do.call(rbind,
             strsplit(as.character(shifts_df$shift_end), " / ")
     ) %>%
       data.frame() ->
       end_mat
-    
+
     shifts_df$start_seconds <- 1200*(nabs(shifts_df$game_period) - 1) + ds.seconds_from_ms(start_mat[, 1])
     shifts_df$end_seconds <- 1200*(nabs(shifts_df$game_period) - 1) + ds.seconds_from_ms(end_mat[, 1])
-    
+
     shifts_df$end_seconds[which(shifts_df$end_seconds < shifts_df$start_seconds)] <- shifts_df$start_seconds[which(shifts_df$end_seconds < shifts_df$start_seconds)] + ds.seconds_from_ms(shifts_df$shift_duration[which(shifts_df$end_seconds < shifts_df$start_seconds)])
-    
+
     shifts_df %>%
       filter(ds.seconds_from_ms(shift_duration) + (start_seconds - 1200*(nabs(game_period) - 1)) <= 1200) %>%
       data.frame() ->
       shifts_df
-    
+
   } else {
-    
+
     shifts <- ds.get_shifts(season_, game_id_, venue = NULL, source = "json", try_tolerance, agents)
-    
+
     shifts_df <- dcapply(shifts$data,
                          ds.parse_shift,
                          "rbind",
                          cores = 1
     )
-    
+
     if(!is.null(shifts_df)) {
-      
+
       shifts_df %>%
         mutate(game_date = game_date_,
                season = as.character(season_),
@@ -1427,9 +1430,9 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
         ) %>%
         data.frame() ->
         shifts_df
-      
+
       year <- substr(season, 0, 4)
-      
+
       url <- paste("https://statsapi.web.nhl.com/api/v1/game/",
                    as.character(year),
                    "0",
@@ -1437,12 +1440,12 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
                    "/feed/live?site=en_nhl",
                    sep = ""
       )
-      
+
       raw_text <- NULL
       json_check <- NULL
-      
+
       while({class(raw_text) != "character" | class(json_check) != "list"} & try_tolerance > 0) {
-        
+
         try(
           url %>%
             getURL(header = FALSE,
@@ -1454,39 +1457,39 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
             )
         ) ->
           raw_text
-        
+
         json_check <- try(fromJSON(raw_text), silent = TRUE)
-        
+
         try_tolerance <- try_tolerance - 1
-        
+
       }
-      
+
       raw_json <- try(fromJSON(raw_text), silent = TRUE)
-      
+
       if(class(raw_json) == "try-error") {raw_json <- NULL}
-      
+
       home_roster <- raw_json$liveData$boxscore$teams$home
       away_roster <- raw_json$liveData$boxscore$teams$away
-      
+
       home_player_data <- dcapply(home_roster$players,
                                   ds.parse_player,
                                   "rbind",
                                   cores = 1
       )
-      
+
       away_player_data <- dcapply(away_roster$players,
                                   ds.parse_player,
                                   "rbind",
                                   cores = 1
       )
-      
+
       bind_rows(
         home_player_data %>%
           mutate(team = home_roster$team$abbreviation,
                  team_name = toupper(home_roster$team$name),
                  venue = "Home"
           ),
-        
+
         away_player_data %>%
           mutate(team = away_roster$team$abbreviation,
                  team_name = toupper(away_roster$team$name),
@@ -1495,15 +1498,15 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       ) %>%
         data.frame() ->
         player_data
-      
+
       player_data$team_num <- paste(player_data$team, player_data$player_number, sep = "")
-      
+
       name_match <- dcapply(player_data$player_id,
                             ds.scrape_player_profile,
                             "rbind",
                             cores = 1
       )
-      
+
       player_data %>%
         mutate(first_name = toupper(name_match$player_name_first[match(player_id, name_match$player_id)]),
                last_name = toupper(name_match$player_name_last[match(player_id, name_match$player_id)]),
@@ -1536,7 +1539,7 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
         ) %>%
         data.frame() ->
         roster_df
-      
+
       shifts_df %>%
         rename(game_period = shift_period) %>%
         mutate(num_first_last = NA,
@@ -1576,20 +1579,20 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
         ) %>%
         data.frame() ->
         shifts_df
-      
+
       shifts_df$end_seconds[which(shifts_df$end_seconds < shifts_df$start_seconds)] <- shifts_df$start_seconds[which(shifts_df$end_seconds < shifts_df$start_seconds)] + ds.seconds_from_ms(shifts_df$shift_duration[which(shifts_df$end_seconds < shifts_df$start_seconds)])
-      
+
       shifts_df %>%
         filter(ds.seconds_from_ms(shift_duration) + (start_seconds - 1200*(nabs(game_period) - 1)) <= 1200) %>%
         data.frame() ->
         shifts_df
-      
+
     } else {return(list(NULL, NULL, NULL, NULL, NULL))}
-    
+
   }
-  
+
   if(!is.null(highlight_df)) {
-    
+
     highlight_df %>%
       filter(nabs(event_period) < 5,
              event_type == 505
@@ -1599,13 +1602,13 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       filter(dupes > 1) %>%
       data.frame() ->
       dupe_check
-    
+
     if(nrow(dupe_check) > 0) {
-      
+
       highlight_df <- NULL
-      
+
     } else {
-      
+
       highlight_df %>%
         mutate(game_date = game_date_,
                game_id = game_id_unique,
@@ -1616,13 +1619,13 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
         ) %>%
         data.frame() ->
         highlight_df
-      
+
     }
-    
+
   }
-  
+
   if(!is.null(coordinates_df)) {
-    
+
     coordinates_df %>%
       mutate(game_date = game_date_,
              game_id = game_id_unique,
@@ -1633,54 +1636,54 @@ ds.scrape_game <- function(season, game_id, try_tolerance = 3, agents = "Mozilla
       ) %>%
       data.frame() ->
       coordinates_df
-    
+
   }
-  
+
   game_list <- list(pbp_df,
                     roster_df,
                     shifts_df,
                     highlight_df,
                     coordinates_df
   )
-  
+
   return(game_list)
-  
+
 }
 
 # Compile Games
-ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3, 
+ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
                              agents = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36") {
-  
+
   ## Description
   # compile_games() collects, parses and compiles all game data corresponding to a given vector of game IDs and season
   # A list object containing c([[1]] = PBP, [[2]] = Roster, [[3]] = Shifts) is returned
-  
+
   foreach(g = as.character(games)) %do% {
-    
+
     cat(g,
         "...",
         "\n",
         sep = ""
     )
-    
+
     inner <- ds.scrape_game(season, g, try_tolerance, agents)
     Sys.sleep(pause)
-    
+
     return(inner)
-    
+
   } -> nested_games
-  
+
   unpacked <- do.call(Map, c(rbind, nested_games))
-  
+
   pbp <- unpacked[[1]]
   roster <- unpacked[[2]]
   shifts <- unpacked[[3]]
   highlights <- unpacked[[4]]
   coords <- unpacked[[5]]
-  
+
   roster$player_name <- ds.fix_names(roster$player_name)
   shifts$player_name <- ds.fix_names(shifts$player_name)
-  
+
   bind_rows(
     shifts %>%
       filter(!is.na(shift_duration)) %>%
@@ -1699,7 +1702,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
                 players_substituted = paste(unique(team_num), collapse = ", ")
       ) %>%
       data.frame(),
-    
+
     shifts %>%
       filter(!is.na(shift_duration)) %>%
       group_by(game_id,
@@ -1718,14 +1721,14 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
       ) %>%
       data.frame()
   ) -> shift_summary
-  
+
   if(!is.null(highlights)) {
-    
+
     highlights$event_match <- ifelse(highlights$event_type == 505,
                                      "GOAL",
                                      "SHOT"
     )
-    
+
     left_join(pbp,
               highlights %>%
                 mutate(game_seconds = 1200*(nabs(event_period) - 1) + nabs(event_seconds)) %>%
@@ -1736,19 +1739,19 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
     ) %>%
       data.frame() ->
       new_pbp
-    
+
   } else {
-    
+
     pbp %>%
       mutate(highlight_code = NA
       ) %>%
       data.frame() ->
       new_pbp
-    
+
   }
-  
+
   if(!is.null(coords)) {
-    
+
     left_join(new_pbp,
               coords %>%
                 rename(coords_x = xcoord,
@@ -1760,27 +1763,27 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
     ) %>%
       data.frame() ->
       new_pbp
-    
+
   } else {
-    
+
     new_pbp %>%
       mutate(coords_x = NA,
              coords_y = NA
       ) %>%
       data.frame() ->
       new_pbp
-    
+
   }
-  
+
   new_pbp %>%
     group_by(game_id, game_seconds, event_description) %>%
     slice(1) %>%
     data.frame() ->
     new_pbp
-  
+
   new_pbp$game_period <- nabs(new_pbp$game_period)
   shift_summary$game_period <- nabs(shift_summary$game_period)
-  
+
   bind_rows(new_pbp,
             shift_summary
   ) %>%
@@ -1791,7 +1794,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
              5*(event_type == "OFF") +
              6*(event_type == "ON") +
              7*(event_type == "FAC")
-    ) %>% 
+    ) %>%
     group_by(game_id) %>%
     arrange(game_period,
             game_seconds,
@@ -1800,7 +1803,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
     mutate(event_index = cumsum(!is.na(game_id))) %>%
     data.frame() ->
     new_pbp
-  
+
   home_on_mat <- dcapply(as.list(unique(shifts$team_num)),
                          ds.is_on,
                          "cbind",
@@ -1811,7 +1814,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
                          ),
                          venue = "Home"
   )
-  
+
   away_on_mat <- dcapply(as.list(unique(shifts$team_num)),
                          ds.is_on,
                          "cbind",
@@ -1822,8 +1825,8 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
                          ),
                          venue = "Away"
   )
-  
-  which(home_on_mat == 1, 
+
+  which(home_on_mat == 1,
         arr.ind = TRUE
   ) %>%
     data.frame() %>%
@@ -1837,8 +1840,8 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
     ) %>%
     data.frame() ->
     home_on_df
-  
-  which(away_on_mat == 1, 
+
+  which(away_on_mat == 1,
         arr.ind = TRUE
   ) %>%
     data.frame() %>%
@@ -1852,7 +1855,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
     ) %>%
     data.frame() ->
     away_on_df
-  
+
   do.call(c,
           home_on_df[, -1] %>%
             split(1:nrow(home_on_df)) %>%
@@ -1862,7 +1865,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
   ) %>%
     as.character() ->
     home_goalie
-  
+
   do.call(c,
           away_on_df[, -1] %>%
             split(1:nrow(away_on_df)) %>%
@@ -1872,7 +1875,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
   ) %>%
     as.character() ->
     away_goalie
-  
+
   new_pbp %>%
     arrange(game_id,
             event_index
@@ -1893,7 +1896,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
            away_goalie = NA
     ) ->
     full_pbp
-  
+
   full_pbp$home_on_1[home_on_df$row] <- home_on_df$home_on_1
   full_pbp$home_on_2[home_on_df$row] <- home_on_df$home_on_2
   full_pbp$home_on_3[home_on_df$row] <- home_on_df$home_on_3
@@ -1901,7 +1904,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
   full_pbp$home_on_5[home_on_df$row] <- home_on_df$home_on_5
   full_pbp$home_on_6[home_on_df$row] <- home_on_df$home_on_6
   full_pbp$home_goalie[home_on_df$row] <- home_goalie
-  
+
   full_pbp$away_on_1[away_on_df$row] <- away_on_df$away_on_1
   full_pbp$away_on_2[away_on_df$row] <- away_on_df$away_on_2
   full_pbp$away_on_3[away_on_df$row] <- away_on_df$away_on_3
@@ -1909,76 +1912,76 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
   full_pbp$away_on_5[away_on_df$row] <- away_on_df$away_on_5
   full_pbp$away_on_6[away_on_df$row] <- away_on_df$away_on_6
   full_pbp$away_goalie[away_on_df$row] <- away_goalie
-  
-  full_pbp$event_player_1 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$event_player_1, sep = "."), 
+
+  full_pbp$event_player_1 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$event_player_1, sep = "."),
                                                       paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$event_player_2 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$event_player_2, sep = "."), 
+  full_pbp$event_player_2 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$event_player_2, sep = "."),
                                                       paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$event_player_3 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$event_player_3, sep = "."), 
+  full_pbp$event_player_3 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$event_player_3, sep = "."),
                                                       paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$home_on_1 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_1, sep = "."), 
+  full_pbp$home_on_1 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_1, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$home_on_2 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_2, sep = "."), 
+  full_pbp$home_on_2 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_2, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$home_on_3 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_3, sep = "."), 
+  full_pbp$home_on_3 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_3, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$home_on_4 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_4, sep = "."), 
+  full_pbp$home_on_4 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_4, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$home_on_5 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_5, sep = "."), 
+  full_pbp$home_on_5 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_5, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$home_on_6 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_6, sep = "."), 
+  full_pbp$home_on_6 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_on_6, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$away_on_1 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_1, sep = "."), 
+  full_pbp$away_on_1 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_1, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$away_on_2 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_2, sep = "."), 
+  full_pbp$away_on_2 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_2, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$away_on_3 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_3, sep = "."), 
+  full_pbp$away_on_3 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_3, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$away_on_4 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_4, sep = "."), 
+  full_pbp$away_on_4 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_4, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$away_on_5 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_5, sep = "."), 
+  full_pbp$away_on_5 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_5, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$away_on_6 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_6, sep = "."), 
+  full_pbp$away_on_6 <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_on_6, sep = "."),
                                                  paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$home_goalie <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_goalie, sep = "."), 
+  full_pbp$home_goalie <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$home_goalie, sep = "."),
                                                    paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  full_pbp$away_goalie <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_goalie, sep = "."), 
+  full_pbp$away_goalie <- roster$player_name[match(paste(full_pbp$game_id, full_pbp$away_goalie, sep = "."),
                                                    paste(roster$game_id, roster$team_num, sep = ".")
   )
   ]
-  
+
   full_pbp %>%
     group_by(game_id) %>%
     arrange(event_index) %>%
@@ -2022,16 +2025,16 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
     ) %>%
     data.frame() ->
     full_pbp
-  
+
   full_pbp$event_team[which(full_pbp$event_team == "PHX")] <- "ARI"
-  
+
   new_game_list <- list(full_pbp,
                         roster,
                         shifts
   )
-  
+
   return(new_game_list)
-  
+
 }
 
 
@@ -2046,7 +2049,7 @@ ds.compile_games <- function(games, season, pause = 1, try_tolerance = 3,
 
 
 ## Description
-# Stats contains all functions and tools related to compiling stats from raw data for Corsica 
+# Stats contains all functions and tools related to compiling stats from raw data for Corsica
 # Dependencies: dplyr, Kmisc, doMC, user_functions
 
 
@@ -2071,18 +2074,18 @@ c("G" = 0.75,
 ) ->
   st.game_score_weights
 
-c("SHOT", 
+c("SHOT",
   "GOAL"
 ) ->
   st.shot_events
 
-c("SHOT", 
+c("SHOT",
   "GOAL",
   "MISS"
 ) ->
   st.fenwick_events
 
-c("SHOT", 
+c("SHOT",
   "GOAL",
   "MISS",
   "BLOCK"
@@ -2090,19 +2093,19 @@ c("SHOT",
   st.corsi_events
 
 c("3v3",
-  "5v5", 
-  "4v4", 
-  "5v4", 
-  "4v5", 
-  "5v3", 
-  "3v5", 
-  "4v3", 
-  "3v4", 
-  "5vE", 
-  "Ev5", 
-  "4vE", 
-  "Ev4", 
-  "3vE", 
+  "5v5",
+  "4v4",
+  "5v4",
+  "4v5",
+  "5v3",
+  "3v5",
+  "4v3",
+  "3v4",
+  "5vE",
+  "Ev5",
+  "4vE",
+  "Ev4",
+  "3vE",
   "Ev3"
 ) %>%
   as.factor() ->
@@ -2111,85 +2114,85 @@ c("3v3",
 ## Meta Functions
 # Combo Code
 st.combo_code <- function(p1, p2, p3) {
-  
+
   ## Description
   # combo_code() returns the unique code produced from a list of up to three players
-  
+
   sorted <- sort(c(p1, p2, p3))
-  
+
   p1_abs <- sorted[1]
   p2_abs <- sorted[2]
   p3_abs <- sorted[3]
-  
+
   code <- paste(p1_abs,
                 p2_abs,
                 p3_abs,
                 sep = "-"
   )
-  
+
   return(code)
-  
+
 }
 
 # Game Score
 st.game_score <- function(x) {
-  
+
   ## Description
   # game_score() returns the game score obtained from a given vector of statistics
   # The vector x is expected to contain the necessary stats in proper order
-  
+
   return(sum(st.game_score_weights*x))
-  
+
 }
 
 # Distance from Net
 st.distance_from_net <- function(x, y) {
-  
+
   ## Description
   # distance_from_net() returns the distance from the nearest net in feet of a location corresponding \
   # to a given set of coordinates
-  
+
   return(sqrt((89 - abs(nabs(x)))^2 + nabs(y)^2))
-  
+
 }
 
 # Angle from Centre
 st.angle_from_centre <- function(x, y) {
-  
+
   ## Description
   # angle_from_centre() returns the angle from the central line perpendicular to the goal line in \
   # degrees of a location corresponsing to a given set of coordinates
-  
+
   return(abs(atan(nabs(y)/(89 - abs(nabs(x))))*(180/pi)))
-  
+
 }
 
 # Which Zone
 st.which_zone <- function(x) {
-  
+
   ## Description
   # which_zone() returns the absolute zone of a location corresponding to a given x-coordinate
-  
+
   factor_level <- as.factor(1*(x <= -25) +
                               2*(abs(nabs(x)) < 25) +
                               3*(x >= 25)
   )
-  
+
   levels(factor_level) <- c("L",
                             "N",
                             "R"
   )
-  
+
   return(as.character(factor_level))
-  
+
 }
 
 st.which_circle <- function(x, y) {
-  
+
   ## Description
   # which_circle() returns the faceoff circle number nearest to a location corresponding to a given \
   # set of coordinates
-  
+
   circle <- 1*(nabs(x) <= -25 & nabs(y) > 0) +
     2*(nabs(x) <= -25 & nabs(y) < 0) +
     3*(nabs(x) < 0 & nabs(x) > 25 & nabs(y) > 0) +
@@ -2199,25 +2202,25 @@ st.which_circle <- function(x, y) {
     7*(nabs(x) > 0 & nabs(x) < 25 & nabs(y) < 0) +
     8*(nabs(x) >= 25 & nabs(y) > 0) +
     9*(nabs(x) >= 25 & nabs(y) < 0)
-  
+
   return(circle)
-  
+
 }
 
 
 ## General Functions
 # Enhance PBP
 st.pbp_enhance <- function(pbp) {
-  
+
   ## Description
   # pbp_enhance() performs some preliminary operations on a given PBP data frame object and returns \
   # the enhanced version
-  
+
   pbp %>%
     mutate_each(funs(nabs), coords_x, coords_y, game_period, game_seconds) %>%
-    data.frame() -> 
+    data.frame() ->
     pbp
-  
+
   pbp %>%
     mutate(event_distance = st.distance_from_net(coords_x, coords_y),
            event_angle = st.angle_from_centre(coords_x, coords_y),
@@ -2226,23 +2229,23 @@ st.pbp_enhance <- function(pbp) {
     ) %>%
     data.frame() ->
     enhanced_pbp
-  
+
   return(enhanced_pbp)
-  
+
 }
 
 # Summarize Team Stats
 st.sum_team <- function(x, venue) {
-  
+
   ## Description
   # sum_team() summarizes all team counting stats from a PBP data frame object
   # x is expected to be a grouped data frame with home_team or away_team as a grouping variable for \
   # venue = "home" and venue = "away" respectively
-  
+
   venue_ <- tolower(as.character(venue))
-  
+
   if(venue_ == "home") {
-    
+
     x %>%
       rename(team = home_team) %>%
       summarise(venue = "Home",
@@ -2289,7 +2292,7 @@ st.sum_team <- function(x, venue) {
                 ),
                 PEND5 = sum(event_type == "PENALTY" & event_team == away_team & grepl("fighting|major", tolower(event_detail)) == TRUE),
                 PENDS = sum(event_type == "PENALTY" & event_team == away_team & grepl("ps \\-", tolower(event_detail)) == TRUE),
-                
+
                 GVA = sum(event_type == "GIVEAWAY" & event_team == team),
                 TKA = sum(event_type == "TAKEAWAY" & event_team == team),
                 HF = sum(event_type == "HIT" & event_team == team),
@@ -2297,9 +2300,9 @@ st.sum_team <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   } else if(venue_ == "away") {
-    
+
     x %>%
       rename(team = away_team) %>%
       summarise(venue = "Away",
@@ -2353,24 +2356,24 @@ st.sum_team <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   }
-  
+
 }
 
 # Summarize Skater Stats
 st.sum_skater <- function(x, venue) {
-  
+
   ## Description
   # sum_skater() summarizes all skater counting stats from a PBP data frame object
   # x is expected to be a grouped data frame with home_on_x or away_on_x as a grouping variable \
   # for venue = "home" and venue = "away" respectively
   # A rename() argument must be passed before sum_skater() to convert home/away_on_x to player
-  
+
   venue_ <- tolower(as.character(venue))
-  
+
   if(venue_ == "home") {
-    
+
     x %>%
       summarise(venue = "Home",
                 team = first(home_team),
@@ -2413,7 +2416,7 @@ st.sum_skater <- function(x, venue) {
                               1*(event_type == "PENALTY" & event_team == away_team & grepl("ps \\-|match|fighting|major", tolower(event_detail)) == TRUE)
                 ),
                 PEND5 = sum(event_type == "PENALTY" & event_team == away_team & grepl("fighting|major", tolower(event_detail)) == TRUE),
-                
+
                 iCF = sum({event_type %in% st.fenwick_events & event_player_1 == player} |
                 {event_type == "BLOCKED_SHOT" & event_player_2 == player}
                 ),
@@ -2445,9 +2448,9 @@ st.sum_skater <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   } else if(venue_ == "away") {
-    
+
     x %>%
       summarise(venue = "Away",
                 team = first(away_team),
@@ -2490,7 +2493,7 @@ st.sum_skater <- function(x, venue) {
                               1*(event_type == "PENALTY" & event_team == home_team & grepl("ps \\-|match|fighting|major", tolower(event_detail)) == TRUE)
                 ),
                 PEND5 = sum(event_type == "PENALTY" & event_team == home_team & grepl("fighting|major", tolower(event_detail)) == TRUE),
-                
+
                 iCF = sum({event_type %in% st.fenwick_events & event_player_1 == player} |
                 {event_type == "BLOCKED_SHOT" & event_player_2 == player}
                 ),
@@ -2522,23 +2525,23 @@ st.sum_skater <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   }
-  
+
 }
 
 # Summarize Goalie Stats
 st.sum_goalie <- function(x, venue) {
-  
+
   ## Description
   # sum_goalie() summarizes all goalie counting stats from a PBP data frame object
   # x is expected to be a grouped data frame with home_goalie or away_goalie as a grouping variable for \
   # venue = "home" and venue = "away" respectively
-  
+
   venue_ <- tolower(as.character(venue))
-  
+
   if(venue_ == "home") {
-    
+
     x %>%
       rename(player = home_goalie) %>%
       summarise(venue = "Home",
@@ -2553,9 +2556,9 @@ st.sum_goalie <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   } else if(venue_ == "away") {
-    
+
     x %>%
       rename(player = away_goalie) %>%
       summarise(venue = "Away",
@@ -2570,23 +2573,23 @@ st.sum_goalie <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   }
-  
+
 }
 
 # Summarize Team Stats (Old PBP Format)
 st.old_sum_team <- function(x, venue) {
-  
+
   ## Description
   # old_sum_team() summarizes all team counting stats from a Corsica 1.0 PBP data frame object
   # x is expected to be a grouped data frame with home_team or away_team as a grouping variable for \
   # venue = "home" and venue = "away" respectively
-  
+
   venue_ <- tolower(as.character(venue))
-  
+
   if(venue_ == "home") {
-    
+
     x %>%
       rename(team = home_team) %>%
       summarise(venue = "Home",
@@ -2629,7 +2632,7 @@ st.old_sum_team <- function(x, venue) {
                 ),
                 PEND5 = sum(event_type == "PENL" & event_team == away_team & grepl("fighting|major", tolower(event_description)) == TRUE),
                 PENDS = sum(event_type == "PENL" & event_team == away_team & grepl("ps \\-", tolower(event_description)) == TRUE),
-                
+
                 GVA = sum(event_type == "GIVEAWAY" & event_team == team),
                 TKA = sum(event_type == "TAKEAWAY" & event_team == team),
                 HF = sum(event_type == "HIT" & event_team == team),
@@ -2637,9 +2640,9 @@ st.old_sum_team <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   } else if(venue_ == "away") {
-    
+
     x %>%
       rename(team = away_team) %>%
       summarise(venue = "Away",
@@ -2689,24 +2692,24 @@ st.old_sum_team <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   }
-  
+
 }
 
 # Summarize Skater Stats (Old PBP Format)
 st.old_sum_skater <- function(x, venue) {
-  
+
   ## Description
   # old_sum_skater() summarizes all skater counting stats from a Corsica 1.0 PBP data frame object
   # x is expected to be a grouped data frame with home_on_x or away_on_x as a grouping variable \
   # for venue = "home" and venue = "away" respectively
   # A rename() argument must be passed before sum_skater() to convert home/away_on_x to player
-  
+
   venue_ <- tolower(as.character(venue))
-  
+
   if(venue_ == "home") {
-    
+
     x %>%
       summarise(venue = "Home",
                 team = first(home_team),
@@ -2745,7 +2748,7 @@ st.old_sum_skater <- function(x, venue) {
                               1*(event_type == "PENL" & event_team == away_team & grepl("ps \\-|match|fighting|major", tolower(event_detail)) == TRUE)
                 ),
                 PEND5 = sum(event_type == "PENL" & event_team == away_team & grepl("fighting|major", tolower(event_detail)) == TRUE),
-                
+
                 iCF = sum(event_type %in% st.corsi_events & p1 == player),
                 iFF = sum(event_type %in% st.fenwick_events & p1 == player),
                 iSF = sum(event_type %in% st.shot_events & p1 == player),
@@ -2775,9 +2778,9 @@ st.old_sum_skater <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   } else if(venue_ == "away") {
-    
+
     x %>%
       summarise(venue = "Away",
                 team = first(away_team),
@@ -2816,7 +2819,7 @@ st.old_sum_skater <- function(x, venue) {
                               1*(event_type == "PENL" & event_team == home_team & grepl("ps \\-|match|fighting|major", tolower(event_detail)) == TRUE)
                 ),
                 PEND5 = sum(event_type == "PENL" & event_team == home_team & grepl("fighting|major", tolower(event_detail)) == TRUE),
-                
+
                 iCF = sum(event_type %in% st.corsi_events & p1 == player),
                 iFF = sum(event_type %in% st.fenwick_events & p1 == player),
                 iSF = sum(event_type %in% st.shot_events & p1 == player),
@@ -2846,23 +2849,23 @@ st.old_sum_skater <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   }
-  
+
 }
 
 # Summarize Goalie Stats (Old PBP Format)
 st.old_sum_goalie <- function(x, venue) {
-  
+
   ## Description
   # old_sum_goalie() summarizes all goalie counting stats from a Corsica 1.0 PBP data frame object
   # x is expected to be a grouped data frame with home_goalie or away_goalie as a grouping variable for \
   # venue = "home" and venue = "away" respectively
-  
+
   venue_ <- tolower(as.character(venue))
-  
+
   if(venue_ == "home") {
-    
+
     x %>%
       rename(player = home_goalie) %>%
       summarise(venue = "Home",
@@ -2877,9 +2880,9 @@ st.old_sum_goalie <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   } else if(venue_ == "away") {
-    
+
     x %>%
       rename(player = away_goalie) %>%
       summarise(venue = "Away",
@@ -2894,9 +2897,9 @@ st.old_sum_goalie <- function(x, venue) {
       ) %>%
       data.frame() %>%
       return()
-    
+
   }
-  
+
 }
 
 
@@ -2922,192 +2925,192 @@ st.old_sum_goalie <- function(x, venue) {
 ## General Functions
 # Numeric Absolute
 nabs <- function(x) {
-  
+
   ## Description
   # nabs() returns x after first converting it to class numeric via character
   # Its primary use is converting objects of class factor to numeric
   # It also provides a more concise wrapper for standard numeric conversion
-  
+
   return(as.numeric(as.character(x)))
-  
+
 }
 
 # Logarithmic Loss
 log_loss <- function(act, pred, allow_inf = FALSE) {
-  
+
   ## Description
   # log_loss() returns the logarithmic loss obtained from a given prediction and known result
   # The allow_inf parameter controls whether infinite loss is allowed (default is FALSE)
   # Setting allow_inf to FALSE will cause large but finite penalties at the extremes
-  
+
   eps = as.numeric(!allow_inf)*1e-15
-  
+
   pred = matrix(sapply(pred, function(x) max(eps, x)),
                 nrow = nrow(pred)
-  )      
-  pred = matrix(sapply(pred, function(x) min(1 - eps, x)), 
+  )
+  pred = matrix(sapply(pred, function(x) min(1 - eps, x)),
                 nrow = nrow(pred)
   )
-  
+
   ll = sum(act*log(pred) + (1 - act)*log(1 - pred))
-  ll = -ll/(nrow(act))    
-  
+  ll = -ll/(nrow(act))
+
   return(ll)
-  
+
 }
 
-# Moving 
+# Moving
 moving <- function(x, n = 5) {
-  
+
   ## Description
   # moving() returns a vector of averages obtained from the n elements of x preceding and including the element \
   # at each respective index
-  
+
   if(length(x) < n) {
-    
+
     v <- NA
-    
+
   } else {
-    
+
     stats::filter(x,
                   rep(1/n, n),
                   sides = 1
-    ) -> 
+    ) ->
       v
-    
+
   }
-  
+
   return(as.numeric(v))
-  
+
 }
 
 # Brier Score
 brier <- function(act, pred) {
-  
+
   ## Description
   # brier() returns the Brier score obtained from a given prediction and known result
-  
+
   bri <- sum((act - pred)^2)/length(act)
-  
+
   return(bri)
-  
+
 }
 
 # NA if NULL
 na_if_null <- function(x) {
-  
+
   ## Description
   # na_if_null() returns an object's value if it is not NULL and NA otherwise
-  
+
   return(ifelse(is.null(x) == TRUE,
                 NA,
                 x
   )
   )
-  
+
 }
 
 # Do Call Apply
 dcapply <- function(x, fun, combine, cores, ...) {
-  
+
   ## Description
   # dcapply() uses do.call() to merge the products of an applied function according to specifications
   # The function will be applied in parallel if cores >= 1
-  
+
   if(cores > 1) {
-    
+
     registerDoMC(cores)
-    
+
     chunks <- split(x, cut(1:length(x), cores))
-    
+
     foreach(i = 1:cores, .combine = c) %dopar% {
-      
+
       chunks[[i]] %>%
-        lapply(fun, ...) 
-      
+        lapply(fun, ...)
+
     } -> list
-    
+
     combined <- do.call(combine, list)
-    
+
   } else {
-    
-    
+
+
     list <- lapply(x, fun, ...)
-    
+
     combined <- do.call(combine, list)
-    
+
   }
-  
+
   return(combined)
-  
+
 }
 
 # NA as String
 na_as_string <- function(x) {
-  
+
   ## Description
   # na_as_string() returns a character vector with NA values replaced as "NA"
-  
+
   x <- as.character(x)
-  
+
   x[which(is.na(x) == TRUE)] <- "NA"
-  
+
   return(x)
-  
+
 }
 
 # NA as String
 na_as_zero <- function(x) {
-  
+
   ## Description
   # na_as_zero() returns a numeric vector with NA values replaced as 0
-  
+
   x <- nabs(x)
-  
+
   x[which(is.na(x) == TRUE)] <- 0
-  
+
   return(x)
-  
+
 }
 
 # F Table to Data Frame
 ftable2df <- function(mydata) {
-  
+
   ## Description
   # ftable2df() returns a data.frame from an ftable object
-  
-  ifelse(class(mydata) == "ftable", 
-         mydata <- mydata, 
+
+  ifelse(class(mydata) == "ftable",
+         mydata <- mydata,
          mydata <- ftable(mydata)
   )
-  
+
   dfrows <- rev(expand.grid(rev(attr(mydata, "row.vars"))))
-  
+
   dfcols <- as.data.frame.matrix(mydata)
-  
-  do.call(paste, 
-          c(rev(expand.grid(rev(attr(mydata, "col.vars")))), 
+
+  do.call(paste,
+          c(rev(expand.grid(rev(attr(mydata, "col.vars")))),
             sep = "_"
           )
   ) -> names(dfcols)
-  
+
   cbind(dfrows, dfcols)
-  
+
 }
 
 
-# Run the entire script below starting at ### DRYSCRPAE ### through the end (do not run the pbp_list or pbp_df portion). 
-# After that has all been run and all functions are loaded, run the ds.compile_games function directly below this. 
-# The "pbp_list" object is a list. [[1]] will pull the pbp specific dataframe out of the list. 
+# Run the entire script below starting at ### DRYSCRPAE ### through the end (do not run the pbp_list or pbp_df portion).
+# After that has all been run and all functions are loaded, run the ds.compile_games function directly below this.
+# The "pbp_list" object is a list. [[1]] will pull the pbp specific dataframe out of the list.
 
-# I've updated all the below functions to work with the HTM links (updated event types). I've also commented out 
+# I've updated all the below functions to work with the HTM links (updated event types). I've also commented out
 # a specific line in one of the functions that fixes a bug in Manny's original code that attempts to convert all
 # PHX games to ARI. Basically, you'll get all the games, but for 07-13 (I think), all PHX games will show the team
-# as "PHX" instead of ARI. 
+# as "PHX" instead of ARI.
 
 
 
-# The "games = ..." portion can be a single game or a vector. I would recommend only scraping at most 400 games at one time. 
+# The "games = ..." portion can be a single game or a vector. I would recommend only scraping at most 400 games at one time.
 
 
 pbp_list <- ds.compile_games(games = 20701,
