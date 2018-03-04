@@ -10,7 +10,8 @@
 
 #################################################################################
 ##This code was written by Emmanuel Perry of @mannyelk on twitter and creator####
-##of corsica.hockey.  All credit to him for creation of the script           ####
+##of corsica.hockey.  All credit to him for creation of the script and can   ####
+## found at github.com/mannyelk                                              ####
 #################################################################################
 
 
