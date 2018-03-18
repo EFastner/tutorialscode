@@ -3114,11 +3114,29 @@ ftable2df <- function(mydata) {
 # The "games = ..." portion can be a single game or a vector. I would recommend only scraping at most 400 games at one time.
 
 
-pbp_list <- ds.compile_games(games = 20701,
-                             season = "20162017",
-                             pause = 2,
-                             try_tolerance = 5,
-                             agents = ds.user_agents)
+games <-c(20001:21230)
+#change here to the directory you want to write the pbp files to
+dir.create('~/HockeyStuff/xGGameBreakdowns/2014/')
 
-pbp_df <- pbp_list[[1]]
 
+for (game in games) {
+    #this should be the same as the directory above
+    setwd('~/HockeyStuff/xGGameBreakdowns/2014/')
+    #you will need to change the season to reflect what season you want to scrape
+    pbp_list <- ds.compile_games(games = game,
+                                 season = "20132014",
+                                 pause = 2,
+                                 try_tolerance = 5,
+                                 agents = ds.user_agents)
+    
+    pbp_df <- pbp_list[[1]]
+    
+    #this creates a new directory inside the above directory to house each game
+    #pbp I do this because I create other stats based on that one pbp file but
+    #if you dont want it you can delete it
+    dir.create(paste0('~/HockeyStuff/xGGameBreakdowns/2014/', as.character(game)))
+    setwd(paste0('~/HockeyStuff/xGGameBreakdowns/2014/', as.character(game)))
+    #this writes the pbp to a text file neccesarry if you want to read it in
+    #again without scraping
+    write_delim(pbp_df, as.character(game), delim ='|')
+}
