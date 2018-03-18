@@ -3114,7 +3114,7 @@ ftable2df <- function(mydata) {
 # The "games = ..." portion can be a single game or a vector. I would recommend only scraping at most 400 games at one time.
 
 
-games <-c(20001:21230)
+games <-c(20303:21230)
 #change here to the directory you want to write the pbp files to
 dir.create('~/HockeyStuff/xGGameBreakdowns/2014/')
 
