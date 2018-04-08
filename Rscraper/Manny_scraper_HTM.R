@@ -27,7 +27,7 @@
 ## Dependencies
 require(RCurl); require(rjson); require(dplyr);
 require(lubridate); require(doMC); require(rvest)
-
+require(readr)
 
 ## Objects
 c(20001:21230,
@@ -3113,8 +3113,8 @@ ftable2df <- function(mydata) {
 
 # The "games = ..." portion can be a single game or a vector. I would recommend only scraping at most 400 games at one time.
 
-
-games <-c(20303:21230)
+library(readr)
+games <-c(20892:20999)
 #change here to the directory you want to write the pbp files to
 dir.create('~/HockeyStuff/xGGameBreakdowns/2014/')
 
@@ -3128,9 +3128,9 @@ for (game in games) {
                                  pause = 2,
                                  try_tolerance = 5,
                                  agents = ds.user_agents)
-    
+
     pbp_df <- pbp_list[[1]]
-    
+
     #this creates a new directory inside the above directory to house each game
     #pbp I do this because I create other stats based on that one pbp file but
     #if you dont want it you can delete it
